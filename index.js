@@ -1,5 +1,21 @@
 const express = require("express");
 const app = express();
+const morgan = require("morgan");
+
+morgan.token("body", (req) => {
+  console.log(req.body);
+
+  if (req.method === "POST") {
+    return JSON.stringify(req.body);
+  } else {
+    return null;
+  }
+});
+
+app.use(express.json());
+app.use(
+  morgan(":method :url :status :res[content-length] - :response-time ms :body")
+);
 
 let persons = [
   {
@@ -32,11 +48,10 @@ const requestLogger = (request, response, next) => {
   next();
 };
 
-app.use(express.json());
-app.use(requestLogger);
+//app.use(requestLogger);
 
 app.get("/", (request, response) => {
-  response.send("<h1>Hello World!</h1>");
+  response.send("<h1>Persons phonebook</h1>");
 });
 
 app.get("/info", (request, response) => {
