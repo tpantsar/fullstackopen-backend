@@ -1,0 +1,22 @@
+{
+  "name": "notebackend",
+  "version": "1.0.0",
+  "description": "part3 backend server for notes",
+  "main": "index.js",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}
