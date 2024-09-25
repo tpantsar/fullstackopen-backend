@@ -10,13 +10,14 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:ui": "rm -rf dist && cd ../phonebook && npm run build && cp -r dist ../fullstackopen-backend && cd ../fullstackopen-backend",
+    "build:ui": "rm -rf dist && cd ../phonebook && rm -rf dist && npm run build && cp -r dist ../fullstackopen-backend && cd ../fullstackopen-backend",
     "deploy:full": "npm run build:ui && git checkout main && git add . && git commit -m uibuild && git push"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "mongoose": "^8.6.3",
     "morgan": "^1.10.0"
