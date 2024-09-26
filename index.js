@@ -21,16 +21,6 @@ app.use(
 );
 app.use(express.static("dist"));
 
-const requestLogger = (request, response, next) => {
-  console.log("Method:", request.method);
-  console.log("Path:  ", request.path);
-  console.log("Body:  ", request.body);
-  console.log("---");
-  next();
-};
-
-//app.use(requestLogger);
-
 app.get("/", (request, response) => {
   response.send("<h1>Persons phonebook</h1>");
 });
@@ -50,23 +40,45 @@ app.get("/api/persons", (request, response) => {
 });
 
 app.get("/api/persons/:id", (request, response) => {
-  Person.findById(request.params.id).then((person) => {
-    response.json(person);
-  });
+  const id = request.params.id;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return response.status(400).json({ error: "invalid ID format" });
+  }
+
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        response.json(person);
+      } else {
+        response.status(404).json({ error: "person not found" });
+      }
+    })
+    .catch((error) => {
+      response.status(500).json({ error: "internal server error" });
+    });
 });
 
 app.delete("/api/persons/:id", (request, response) => {
-  Person.findByIdAndRemove(request.params.id).then((person) => {
-    console.log(
-      "Deleting %s with number %s from phonebook",
-      person.name,
-      person.number
-    );
-    response.status(204).end();
-  });
+  Person.findByIdAndDelete(request.params.id)
+    .then((person) => {
+      if (person) {
+        console.log(
+          "Deleted %s with number %s from phonebook",
+          person.name,
+          person.number
+        );
+        response.status(204).end();
+      } else {
+        response.status(404).json({ error: "person not found" });
+      }
+    })
+    .catch((error) => {
+      response.status(500).json({ error: "internal server error" });
+    });
 });
 
-app.post("/api/persons", (request, response) => {
+app.post("/api/persons", async (request, response) => {
   const body = request.body;
 
   if (body.name === undefined) {
@@ -81,25 +93,27 @@ app.post("/api/persons", (request, response) => {
     });
   }
 
-  // Check if person name already exists in the phonebook
-  Person.find({ name: body.name }).then((persons) => {
+  try {
+    // Check if person name already exists in the phonebook
+    const persons = await Person.find({ name: body.name });
     if (persons.length > 0) {
       return response.status(400).json({
         error: "name must be unique",
       });
     }
-  });
 
-  const person = new Person({
-    name: body.name,
-    number: body.number,
-    id: Math.floor(Math.random() * 1000),
-  });
+    const person = new Person({
+      name: body.name,
+      number: body.number,
+      id: String(Math.floor(Math.random() * 1000)),
+    });
 
-  person.save().then((savedPerson) => {
+    const savedPerson = await person.save();
     console.log("Added %s with number %s to phonebook", body.name, body.number);
     response.json(savedPerson);
-  });
+  } catch (error) {
+    response.status(500).json({ error: "internal server error" });
+  }
 });
 
 const unknownEndpoint = (request, response) => {
